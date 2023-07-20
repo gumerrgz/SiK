@@ -54,6 +54,7 @@ __pdata uint8_t	at_cmd_len;
 // mode flags
 bool		at_mode_active;	///< if true, incoming bytes are for AT command
 bool		at_cmd_ready;	///< if true, at_cmd / at_cmd_len contain valid data
+int 		at_radio_mode = 0;
 
 // test bits
 __pdata uint8_t		at_testmode;    ///< test modes enabled (AT_TEST_*)
@@ -67,6 +68,7 @@ static void	at_ampersand(void);
 static void	at_p(void);
 static void	at_plus(void);
 static void at_m(void);
+static void at_3dr(void);
 
 #pragma save
 #pragma nooverlay
@@ -246,6 +248,9 @@ at_command(void)
 				break;
 			case 'M':
 				at_m();
+				break;
+			case '3':
+				at_3dr();
 				break;
 			case 'P':
 				at_p();
@@ -737,6 +742,60 @@ at_m(void)
 			at_error();
 			return;
 		}
+	case 'R': //Software reset.
+		printf("Rebooting \n");
+		RSTSRC |= 0x10;
+		while (1)
+		{}
+		break; 
+
+	default:
+		at_error();
+		return;
+
+	}
+#endif
+}
+
+static void
+at_3dr(void)
+{
+#ifdef BOARD_3dr1060
+	//mRo Options
+	__pdata uint8_t mRo_num = 0;
+	__pdata uint8_t osc_val = 0;
+
+	printf(" 3dr command received \n");
+	
+	if (at_cmd[4] == '=')
+	{
+		idx = 5;
+		at_parse_number();
+		mRo_num = at_num;
+		// printf("Received value: %u \n", mRo_num);
+	}
+
+	switch (at_cmd[3])
+	{
+	case 'H': //ATMH , HELP
+		printf("3dr AT commands help \n");
+		printf("AT3D     ->Default mode\n");
+		printf("AT3I	 ->RX mode\n");
+		printf("AT3O	 ->TX mode\n");
+		printf("AT3R     ->Reboot \n");
+		break;
+
+	case 'D': //ATMD
+		at_radio_mode = 0;
+		break;
+
+	case 'I': //ATMI
+		at_radio_mode = 1;
+		break;
+
+	case 'O': //ATMO
+		at_radio_mode = 2;
+		break;
 	case 'R': //Software reset.
 		printf("Rebooting \n");
 		RSTSRC |= 0x10;

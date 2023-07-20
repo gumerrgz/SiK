@@ -520,6 +520,22 @@ tdm_serial_loop(void)
   _canary = 42;
   
   for (;;) {
+
+    while ( at_radio_mode == 1 ){ // RX mode
+      radio_receiver_on();
+      LED_RADIO = LED_OFF;
+      // give the AT command processor a chance to handle a command
+      at_command();
+    }
+  
+    while ( at_radio_mode == 2 ) { // TX mode
+      radio_set_channel(0);
+      radio_transmit(MAX_PACKET_LENGTH, pbuf, 0);
+      LED_RADIO = LED_ON;
+      // give the AT command processor a chance to handle a command
+      at_command();
+    }
+
     if (_canary != 42) {
       panic("stack blown\n");
     }
