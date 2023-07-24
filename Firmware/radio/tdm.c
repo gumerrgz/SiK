@@ -530,7 +530,7 @@ tdm_serial_loop(void)
   
     while ( at_radio_mode == 2 ) { // TX mode
       radio_set_channel(0);
-      radio_transmit(MAX_PACKET_LENGTH, pbuf, 0);
+      radio_transmit(MAX_PACKET_LENGTH, pbuf, 1000);
       LED_RADIO = LED_ON;
       // give the AT command processor a chance to handle a command
       at_command();
